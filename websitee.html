@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Text Encryption and Decryption</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        background-color: darkslategrey;
+        margin: 0;
+        padding: 0;
+      }
+
+      .container {
+        background-color: #e8e3e3;
+        max-width: 50%;
+        margin: 20px auto;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+      }
+
+      h1 {
+        color: #333;
+      }
+
+      button {
+        padding: 10px 20px;
+        font-size: 16px;
+        margin: 10px;
+        background-color: #007bff;
+        color: #fff3f3;
+        border: none;
+        border-radius: 7px;
+        cursor: pointer;
+        transition: background-color 1s, opacity 1s;
+      }
+
+      button:hover {
+        background-color: rgb(27, 165, 250);
+        opacity: 0.8;
+      }
+
+      textarea,
+      input {
+        width: 100%;
+        padding: 10px;
+        margin: 5px 0;
+        border: 1px solid #765757;
+        border-radius: 5px;
+      }
+
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Let us help you encrypt your message :)</h1>
+      <div class="options">
+        <button id="encryptBtn">Encrypt</button>
+        <button id="decryptBtn">Decrypt</button>
+      </div>
+      <div id="encryptionForm" class="hidden">
+        <h2>Encryption Methods</h2>
+        <select id="encryptionMethod">
+          <option value="caesar-additive">Caesar Additive</option>
+          <option value="caesar-multiplicative">Caesar Multiplicative</option>
+          <option value="ascii">ASCII</option>
+        </select>
+        <label for="plainText">Enter text:</label>
+        <input type="text" id="plainText" placeholder="Enter text" />
+        <label for="key">Enter key:</label>
+        <input type="number" id="key" placeholder="Enter key" />
+        <button id="performEncrypt">Encrypt</button>
+        <button id="clearEncrypt">Clear</button>
+        <p id="encryptedText"></p>
+      </div>
+      <div id="decryptionForm" class="hidden">
+        <h2>Decryption Methods</h2>
+        <select id="decryptionMethod">
+          <option value="caesar-additive">Caesar Additive</option>
+          <option value="caesar-multiplicative">Caesar Multiplicative</option>
+          <option value="ascii">ASCII</option>
+        </select>
+        <label for="cipherText">Enter text:</label>
+        <input type="text" id="cipherText" placeholder="Enter text" />
+        <label for="keyDecrypt">Enter key:</label>
+        <input type="number" id="keyDecrypt" placeholder="Enter key" />
+        <button id="performDecrypt">Decrypt</button>
+        <button id="clearDecrypt">Clear</button>
+        <p id="decryptedText"></p>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const encryptBtn = document.getElementById("encryptBtn");
+        const decryptBtn = document.getElementById("decryptBtn");
+        const encryptionForm = document.getElementById("encryptionForm");
+        const decryptionForm = document.getElementById("decryptionForm");
+        const encryptionMethodSelect =
+          document.getElementById("encryptionMethod");
+        const decryptionMethodSelect =
+          document.getElementById("decryptionMethod");
+        const performEncryptBtn = document.getElementById("performEncrypt");
+        const clearEncryptBtn = document.getElementById("clearEncrypt");
+        const performDecryptBtn = document.getElementById("performDecrypt");
+        const clearDecryptBtn = document.getElementById("clearDecrypt");
+        const plainText = document.getElementById("plainText");
+        const cipherText = document.getElementById("cipherText");
+        const key = document.getElementById("key");
+        const keyDecrypt = document.getElementById("keyDecrypt");
+        const encryptedText = document.getElementById("encryptedText");
+        const decryptedText = document.getElementById("decryptedText");
+
+        encryptBtn.addEventListener("click", function () {
+          showForm("encryptionForm");
+        });
+
+        decryptBtn.addEventListener("click", function () {
+          showForm("decryptionForm");
+        });
+
+        performEncryptBtn.addEventListener("click", function () {
+          const method = encryptionMethodSelect.value;
+          const text = plainText.value;
+          const encryptionKey = parseInt(key.value);
+
+          let result = "";
+
+          if (method === "caesar-additive") {
+            result = caesarAdditiveEncrypt(text, encryptionKey);
+          } else if (method === "caesar-multiplicative") {
+            result = caesarMultiplicativeEncrypt(text, encryptionKey);
+          } else if (method === "ascii") {
+            result = asciiEncrypt(text, encryptionKey);
+          }
+
+          encryptedText.textContent = "Encrypted Text: " + result;
+        });
+
+        performDecryptBtn.addEventListener("click", function () {
+          const method = decryptionMethodSelect.value;
+          const text = cipherText.value;
+          const decryptionKey = parseInt(keyDecrypt.value);
+
+          let result = "";
+
+          if (method === "caesar-additive") {
+            result = caesarAdditiveDecrypt(text, decryptionKey);
+          } else if (method === "caesar-multiplicative") {
+            result = caesarMultiplicativeDecrypt(text, decryptionKey);
+          } else if (method === "ascii") {
+            result = asciiDecrypt(text, decryptionKey);
+          }
+
+          decryptedText.textContent = "Decrypted Text: " + result;
+        });
+
+        clearEncryptBtn.addEventListener("click", function () {
+          plainText.value = "";
+          key.value = "";
+          encryptedText.textContent = "";
+        });
+
+        clearDecryptBtn.addEventListener("click", function () {
+          cipherText.value = "";
+          keyDecrypt.value = "";
+          decryptedText.textContent = "";
+        });
+
+        function showForm(formId) {
+          const forms = document.querySelectorAll(".hidden");
+          forms.forEach((form) => {
+            form.style.display = "none";
+          });
+          document.getElementById(formId).style.display = "block";
+        }
+
+        function caesarAdditiveEncrypt(text, key) {
+          let result = "";
+
+          for (let i = 0; i < text.length; i++) {
+            let charCode = text.charCodeAt(i);
+
+            if (
+              "A".charCodeAt(0) <= charCode &&
+              charCode <= "Z".charCodeAt(0)
+            ) {
+              charCode =
+                ((((charCode - "A".charCodeAt(0) + key) % 26) + 26) % 26) +
+                "A".charCodeAt(0);
+            } else if (
+              "a".charCodeAt(0) <= charCode &&
+              charCode <= "z".charCodeAt(0)
+            ) {
+              charCode =
+                ((((charCode - "a".charCodeAt(0) + key) % 26) + 26) % 26) +
+                "a".charCodeAt(0);
+            }
+
+            result += String.fromCharCode(charCode);
+          }
+
+          return result;
+        }
+
+        function caesarAdditiveDecrypt(text, key) {
+          return caesarAdditiveEncrypt(text, -key);
+        }
+        function caesarMultiplicativeEncrypt(text, key) {
+          let result = "";
+
+          for (let i = 0; i < text.length; i++) {
+            let charCode = text.charCodeAt(i);
+
+            if (
+              "A".charCodeAt(0) <= charCode &&
+              charCode <= "Z".charCodeAt(0)
+            ) {
+              charCode =
+                (((((charCode - "A".charCodeAt(0)) * key) % 26) + 26) % 26) +
+                "A".charCodeAt(0);
+            } else if (
+              "a".charCodeAt(0) <= charCode &&
+              charCode <= "z".charCodeAt(0)
+            ) {
+              charCode =
+                (((((charCode - "a".charCodeAt(0)) * key) % 26) + 26) % 26) +
+                "a".charCodeAt(0);
+            }
+
+            result += String.fromCharCode(charCode);
+          }
+
+          return result;
+        }
+
+        function caesarMultiplicativeDecrypt(text, key) {
+          for (let i = 1; i < 26; i++) {
+            if ((key * i) % 26 === 1) {
+              return caesarMultiplicativeEncrypt(text, i);
+            }
+          }
+
+          return "Key is not valid for decryption.";
+        }
+
+        function asciiEncrypt(text, key) {
+          let result = "";
+          for (let i = 0; i < text.length; i++) {
+            const charCode = text.charCodeAt(i);
+            // Ensure the character stays within the ASCII printable range (32 to 127)
+            result += String.fromCharCode(((charCode - 32 + key) % 95) + 32);
+          }
+          return result;
+        }
+
+        function asciiDecrypt(text, key) {
+          let result = "";
+          for (let i = 0; i < text.length; i++) {
+            const charCode = text.charCodeAt(i);
+            // Ensure the character stays within the ASCII printable range (32 to 127)
+            let decryptedCharCode = (charCode - 32 - key + 95) % 95;
+            if (decryptedCharCode < 0) {
+              decryptedCharCode += 95;
+            }
+            decryptedCharCode += 32;
+            result += String.fromCharCode(decryptedCharCode);
+          }
+          return result;
+        }
+      });
+    </script>
+  </body>
+</html>
